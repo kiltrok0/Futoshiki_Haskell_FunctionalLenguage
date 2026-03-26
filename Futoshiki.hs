@@ -22,38 +22,39 @@ data Futoshiki = Futoshiki {
 -- Función de backtracking genérica --
 bt :: (a -> Bool) -> (a -> [a]) -> a -> [a]
 bt    esSol          succ          n
-  | esSol n                           = [n]     --Nodo es solución, me da la lista de nodos solución del nodo
+  | esSol n                           = [n]     --Si nodo es solución, me da la lista de nodos solución a las que se llega de ese nodo
   | otherwise                         = 
-        concat (map (bt esSol succ) (succ n))   --Si nodo no es solución, le aplica la función bt a cada hijo (succ n) con map
+        concat (map (bt esSol succ) (succ n))   --Si nodo no es solución, le aplica la función bt (bt esSol succ) a cada hijo (succ n) con map
 
 
 -- Main function: solves a Futoshiki --
 solve :: Futoshiki -> [Matrix Int]              -- Matrix Int = [[Int]]
 solve f = map cells (bt esSolucion sucesores f) -- Obtiene cells de las matrices solución
 
--- Función isSolution --
+-- Función esSolucion --
 esSolucion :: Futoshiki -> Bool                 -- Desde un nodo Futoshiki obtener True si es solución, false en caso contrario
 esSolucion f = not (any (elem 0) (cells f))     -- ¿Algún 0 en cells de f? Si hay, esSolucion es false
 
--- Función makeSucesors --
-sucesores :: Futoshiki -> [Futoshiki]           -- Desde un nodo Futoshiki generamos una lista con nodo con posible solución
-sucesores f = case casillaVacia (cells f) of    -- Encuentra la primera casilla con cero de las celdas de f
-    Nothing -> []                               -- No hay ceros, no se generan más sucesores (hijos)
-    Just (r,c) -> [ 
-                  f { cells = actualizaMatriz (cells f)  
-                  r c v} | v <- [1..(size f)] , 
-                  isValid f r c v 
-                  ]
+-- Función sucesores --
+sucesores :: Futoshiki -> [Futoshiki]           -- Desde un nodo Futoshiki generamos una lista con nodos con posible solución
+sucesores f = case casillaVacia (cells f) of    -- Encuentra la primera casilla con cero de las cells de f
+  Nothing -> []                                 -- No hay ceros (condición case), no se generan más sucesores (hijos)
+  Just (r,c) -> [                               -- Si hay cero en fila r (row) y columna c (column), trabajará con esas coordenadas
+                f { cells = actualizaMatriz     -- Crea la nueva matriz con el valor v en la posición (r,c)
+                (cells f) r c v} |
+                v <- [1..(size f)]              -- v toma los números posibles del 1 al tamaño del tablero 
+                , esValida f r c v              -- Se comprueba si el valor v es válido para darnos una solución, sino, se descarta esa rama del árbol
+                ]
 
--- Función isValid --
+-- Función esValida --
 esValida :: Futoshiki -> Int -> Int -> Int -> Bool
+esValida f r c v = 
+  noRepFila &&                                  -- Verifica si v no se repite en la fila
+  noRepColumna &&                               -- Verifica si v no se repite en la columna
+  condicionHorizontal &&                        -- Verifica si v cumple relación horizontal 
+  condicionVertical                             -- Verifica si v cumple relación vertical 
+  where 
+      noRepFila = v `notElem` (cells f !! r)
 
+actualizarMatriz :: Futoshiki -> 
 
--- Evaluación perezosa -- (No sé para que es...)
-checkSolution :: Futoshiki -> Sol -> Bool
-checkSolution f None       = (solve f) == []
-checkSolution f (Single m) = (solve f) == [m]
-checkSolution f Multiple   = checkMultiple (solve f)
-    where checkMultiple :: [Matrix Int] -> Bool
-          checkMultiple (x:y:zs) = True
-          checkMultiple _        = False 
