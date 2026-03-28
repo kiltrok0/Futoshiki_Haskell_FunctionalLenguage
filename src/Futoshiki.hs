@@ -1,4 +1,3 @@
-{- HLINT ignore "Use concatMap" -}
 
 module Futoshiki where
 import Distribution.Simple.Command (OptDescr(BoolOpt))
@@ -40,21 +39,21 @@ sucesores :: Futoshiki -> [Futoshiki]           -- Desde un nodo Futoshiki gener
 sucesores f = case casillaVacia (cells f) of    -- Encuentra la primera casilla con cero de las cells de f
   Nothing -> []                                 -- No hay ceros (condición case), no se generan más sucesores (hijos)
   Just (r,c) -> [                               -- Si hay cero en fila r (row) y columna c (column), trabajará con esas coordenadas
-                f { cells = actualizaMatriz     -- Crea la nueva matriz con el valor v en la posición (r,c)
-                (cells f) r c v} |
-                v <- [1..(size f)]              -- v toma los números posibles del 1 al tamaño del tablero 
-                , esValida f r c v              -- Se comprueba si el valor v es válido para darnos una solución, sino, se descarta esa rama del árbol
+                f { cells = actualizaMatriz     -- Crea la nueva matriz con el valor n en la posición (r,c)
+                (cells f) r c n} |
+                n <- [1..(size f)]              -- n toma los números posibles del 1 al tamaño del tablero 
+                , esValida f r c n              -- Se comprueba si el valor n es válido para darnos una solución, sino, se descarta esa rama del árbol
                 ]
 
 -- Función esValida --
 esValida :: Futoshiki -> Int -> Int -> Int -> Bool
-esValida f r c v = 
+esValida f r c n = 
   noRepFila &&                                  -- Verifica si v no se repite en la fila
   noRepColumna &&                               -- Verifica si v no se repite en la columna
   condicionHorizontal &&                        -- Verifica si v cumple relación horizontal 
   condicionVertical                             -- Verifica si v cumple relación vertical 
   where 
-      noRepFila = v `notElem` (cells f !! r)
+      noRepFila = n `notElem` (cells f !! r)    -- !! r nos devuelve la fila r (row), extrae la lista dentro de la lista. Se comprueba que no exista el elemento n en la fila.
 
 actualizarMatriz :: Futoshiki -> 
 
