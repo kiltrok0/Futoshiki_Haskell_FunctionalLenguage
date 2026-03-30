@@ -22,8 +22,8 @@ data Futoshiki = Futoshiki {
 bt :: (a -> Bool) -> (a -> [a]) -> a -> [a]
 bt    esSol          succ          n
   | esSol n                           = [n]     --Si nodo es solución, me da la lista de nodos solución a las que se llega de ese nodo
-  | otherwise                         = 
-        concat (map (bt esSol succ) (succ n))   --Si nodo no es solución, le aplica la función bt (bt esSol succ) a cada hijo (succ n) con map
+  | otherwise                         =
+        concatMap (bt esSol succ) (succ n)   --Si nodo no es solución, le aplica la función bt (bt esSol succ) a cada hijo (succ n) con map
 
 
 -- Main function: solves a Futoshiki --
@@ -39,23 +39,25 @@ sucesores :: Futoshiki -> [Futoshiki]           -- Desde un nodo Futoshiki gener
 sucesores f = case casillaVacia (cells f) of    -- Encuentra la primera casilla con cero de las cells de f
   Nothing -> []                                 -- No hay ceros (condición case), no se generan más sucesores (hijos)
   Just (r,c) -> [                               -- Si hay cero en fila r (row) y columna c (column), trabajará con esas coordenadas
-                f { cells = actualizaMatriz     -- Crea la nueva matriz con el valor n en la posición (r,c)
+                f { cells = actualizarMatriz    -- Crea la nueva matriz con el valor n en la posición (r,c)
                 (cells f) r c n} |
-                n <- [1 .. (size f)]              -- n toma los números posibles del 1 al tamaño del tablero 
+                n <- [1 .. (size f)]            -- n toma los números posibles del 1 al tamaño del tablero 
                 , esValida f r c n              -- Se comprueba si el valor n es válido para darnos una solución, sino, se descarta esa rama del árbol
                 ]
 
 -- Función esValida --
 esValida :: Futoshiki -> Int -> Int -> Int -> Bool
 esValida f r c n =                              -- Validamos si es correcto meter el número n en la fila y columna (r,c) dentro del tablero Futoshiki f
-  noRepFila &&                                  -- Verifica si v no se repite en la fila
-  noRepColumna &&                               -- Verifica si v no se repite en la columna
-  condicionHorizontal &&                        -- Verifica si v cumple relación horizontal 
+  noRepFila &&                                  -- Verifica si v no se repite en la fila                                  -- Verifica si v no se repite en la fila                                  -- Verifica si v no se repite en la fila                                  -- Verifica si v no se repite en la fila
+                                    -- Verifica si v no se repite en la fila
+  noRepColumna &&                               -- Verifica si v no se repite en la columna                               -- Verifica si v no se repite en la columna                               -- Verifica si v no se repite en la columna                               -- Verifica si v no se repite en la columna
+                                 -- Verifica si v no se repite en la columna
+  condicionHorizontal &&                        -- Verifica si v cumple relación horizontal                         -- Verifica si v cumple relación horizontal                         -- Verifica si v cumple relación horizontal 
   condicionVertical                             -- Verifica si v cumple relación vertical 
-  where 
+  where
       noRepFila = n `notElem` (cells f !! r)    -- !! r nos devuelve la fila r (row), extrae la lista dentro de la lista. Se comprueba que no exista el elemento n en la fila.
-      
-      noRepColumna = n `notElem` [cells f !! i !! c | i <- [0 .. (size f - 1)]] 
+
+      noRepColumna = n `notElem` [cells f !! i !! c | i <- [0 .. (size f - 1)]]
 
       condicionHorizontal = (c == 0 || verificar (hRel f !! r !! (c - 1)) (cells f !! r !! (c - 1)) n) &&   -- Si c == 0, no hay vecino izquiero
                             (c == (size f - 1) || verificar (hRel f !! r !! c) n (cells f !! r !! (c + 1))) -- Si c == size f - 1, no hay vecino derecho
@@ -69,13 +71,25 @@ esValida f r c n =                              -- Validamos si es correcto mete
             | v1 == 0 || v2 == 0 = True
             | rel == RGT         = v1 > v2
             | rel == RLT         = v1 < v2
-            | otherwise          = True 
+            | otherwise          = True
 
 -- Función casillaVacia --
 
 casillaVacia :: Matrix Int -> Maybe (Int,Int)   -- Nos da la coordenaras (r,c) del primer 0 que encuentre
 casillaVacia m =  let vacios = [(r,c) | r <- [0 .. l - 1], c <- [0 .. l - 1], m !! r !! c == 0]
-                      l = length m
+                      l = length m              -- Vacios es una lista de coordendas (r,c), en donde m !! r !! c == 0
                   in if null vacios then Nothing else Just (head vacios)
+                                                -- Si no hay casillas vacías, devuelve Nothing,
+                                                -- si hay casillas vacías, devuelve el head de la lista vacios
 
 -- Función actualizarMatriz --
+
+actualizarMatriz :: Matrix a -> Int -> Int -> a -> Matrix a
+actualizarMatriz m r c n = take r m 
+                           ++ [nuevaFila] 
+                           ++ drop (r + 1) m    -- Toma las r filas de m, le agrega la nuevaFila, y luego agrega las filas sobre r + 1 
+    where
+      filaOriginal = m !! r                     -- Fila número r de la matriz m
+      nuevaFila    = take c filaOriginal        -- Se toman los c primeros elementos 
+                     ++ [n]                     -- Se agrega el valor n en la posición c, luego se suman los c + 1 elementos de la filaOriginal
+                     ++ drop (c + 1) filaOriginal
