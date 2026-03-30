@@ -23,7 +23,7 @@ bt :: (a -> Bool) -> (a -> [a]) -> a -> [a]
 bt    esSol          succ          n
   | esSol n                           = [n]     --Si nodo es solución, me da la lista de nodos solución a las que se llega de ese nodo
   | otherwise                         =
-        concatMap (bt esSol succ) (succ n)   --Si nodo no es solución, le aplica la función bt (bt esSol succ) a cada hijo (succ n) con map
+        concatMap (bt esSol succ) (succ n)      --Si nodo no es solución, le aplica la función bt (bt esSol succ) a cada hijo (succ n) con map
 
 
 -- Main function: solves a Futoshiki --
@@ -48,11 +48,9 @@ sucesores f = case casillaVacia (cells f) of    -- Encuentra la primera casilla 
 -- Función esValida --
 esValida :: Futoshiki -> Int -> Int -> Int -> Bool
 esValida f r c n =                              -- Validamos si es correcto meter el número n en la fila y columna (r,c) dentro del tablero Futoshiki f
-  noRepFila &&                                  -- Verifica si v no se repite en la fila                                  -- Verifica si v no se repite en la fila                                  -- Verifica si v no se repite en la fila                                  -- Verifica si v no se repite en la fila
-                                    -- Verifica si v no se repite en la fila
-  noRepColumna &&                               -- Verifica si v no se repite en la columna                               -- Verifica si v no se repite en la columna                               -- Verifica si v no se repite en la columna                               -- Verifica si v no se repite en la columna
-                                 -- Verifica si v no se repite en la columna
-  condicionHorizontal &&                        -- Verifica si v cumple relación horizontal                         -- Verifica si v cumple relación horizontal                         -- Verifica si v cumple relación horizontal 
+  noRepFila &&                                  -- Verifica si v no se repite en la fila
+  noRepColumna &&                               -- Verifica si v no se repite en la columna                               
+  condicionHorizontal &&                        -- Verifica si v cumple relación horizontal
   condicionVertical                             -- Verifica si v cumple relación vertical 
   where
       noRepFila = n `notElem` (cells f !! r)    -- !! r nos devuelve la fila r (row), extrae la lista dentro de la lista. Se comprueba que no exista el elemento n en la fila.
